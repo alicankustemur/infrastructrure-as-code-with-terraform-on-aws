@@ -1,3 +1,7 @@
+provider "aws" {
+  
+}
+
 // VPC
 
 resource "aws_vpc" "default" {
