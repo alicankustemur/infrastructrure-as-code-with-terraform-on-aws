@@ -1,0 +1,6 @@
+cidr_block = "172.31.0.0/16"
+availability_zone = "eu-west-1a"
+public_key_path = "~/.ssh/id_rsa.pub"
+private_key_path = "~/.ssh/id_rsa"
+ssh_username = "ubuntu"
+instance_type = "t2.micro"
