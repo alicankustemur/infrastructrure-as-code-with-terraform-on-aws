@@ -93,8 +93,7 @@ resource "aws_instance" "terraform_instance" {
     }
 
     tags {
-        # Name = "Istanbul Coders IaC Terraform"
-        Name = "terraform-1"
+        Name = "Istanbul Coders IaC Terraform"
     }
 
      provisioner "remote-exec" {
