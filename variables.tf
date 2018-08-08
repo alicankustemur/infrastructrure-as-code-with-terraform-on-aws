@@ -1,6 +1,10 @@
-variable "cidr_block" {
+variable "vpc_cidr_block" {
   
 }
+variable "public_subnet_cidr_block" {
+  
+}
+
 variable "availability_zone" {
   
 }
@@ -15,6 +19,9 @@ variable "ssh_username" {
 }
 
 variable "instance_type" {
+  
+}
+variable "ami" {
   
 }
 

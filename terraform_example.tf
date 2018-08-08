@@ -5,7 +5,7 @@ provider "aws" {
 // VPC
 
 resource "aws_vpc" "default" {
-    cidr_block = "${var.cidr_block}"
+    cidr_block = "${var.vpc_cidr_block}"
     enable_dns_hostnames = true
     tags {
         Name = "terraform_aws_vpc"
@@ -30,6 +30,7 @@ resource "aws_security_group" "terraform_public_security_group" {
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
+    // all
     ingress {
         from_port = -1
         to_port = -1
@@ -55,6 +56,7 @@ resource "aws_security_group" "terraform_public_security_group" {
         protocol = "tcp"
         cidr_blocks = ["${aws_vpc.default.cidr_block}"]
     }
+    // all
     egress {
         from_port = -1
         to_port = -1
@@ -77,7 +79,7 @@ resource "aws_key_pair" "terraform_key_pair" {
 
 // Instance
 resource "aws_instance" "terraform_instance" {
-    ami = "ami-cd49ac20"  # Ubuntu 16.04 LTS https://eu-west-1.console.aws.amazon.com/ec2/home?region=eu-west-1#LaunchInstanceWizard:ami=ami-cd49ac20
+    ami = "${var.ami}"  # Ubuntu 16.04 LTS https://cloud-images.ubuntu.com/locator/ec2/
     availability_zone = "${var.availability_zone}"
     instance_type = "${var.instance_type}"
     key_name = "${aws_key_pair.terraform_key_pair.key_name}"
@@ -93,7 +95,7 @@ resource "aws_instance" "terraform_instance" {
     }
 
     tags {
-        Name = "Istanbul Coders IaC Terraform"
+         Name = "Istanbul Coders IaC Terraform"
     }
 
      provisioner "remote-exec" {
@@ -108,8 +110,8 @@ resource "aws_instance" "terraform_instance" {
 resource "aws_subnet" "terraform_public_subnet" {
     vpc_id = "${aws_vpc.default.id}"
 
-    cidr_block = "172.31.1.0/24"
-    availability_zone = "eu-west-1a"
+    cidr_block = "${var.public_subnet_cidr_block}"
+    availability_zone = "${var.availability_zone}"
 
     tags {
         Name = "terraform_public_subnet"
