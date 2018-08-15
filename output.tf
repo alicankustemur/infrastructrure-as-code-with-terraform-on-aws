@@ -4,7 +4,7 @@ output "private_key_path_for_ssh" {
 }
 
 output "public_ip" {
-  value = "${aws_instance.terraform_instance.public_ip}"
+  value = "${aws_instance.web.public_ip}"
 }
 output "username_for_ssh" {
   value = "${var.ssh_username}"

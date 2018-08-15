@@ -1,5 +1,5 @@
 provider "aws" {
-  
+    region = "${var.region}" 
 }
 
 // VPC
@@ -12,12 +12,24 @@ resource "aws_vpc" "default" {
     }
 }
 
+// Public Subnet
+resource "aws_subnet" "public" {
+    vpc_id = "${aws_vpc.default.id}"
+
+    cidr_block = "${var.public_subnet_cidr_block}"
+    availability_zone = "${var.availability_zone}"
+
+    tags {
+        Name = "public"
+    }
+}
+
 //  Security Group
 
-resource "aws_security_group" "terraform_public_security_group" {
-    name = "terraform_public_security_group"
+resource "aws_security_group" "public" {
+    name = "public"
     description = "Allow traffic to pass from the public subnet to the internet"
-
+    vpc_id = "${aws_vpc.default.id}"
     ingress {
         from_port = 80
         to_port = 80
@@ -30,7 +42,7 @@ resource "aws_security_group" "terraform_public_security_group" {
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
-    // all
+    // for ping
     ingress {
         from_port = -1
         to_port = -1
@@ -50,13 +62,7 @@ resource "aws_security_group" "terraform_public_security_group" {
         protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
-    egress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = ["${aws_vpc.default.cidr_block}"]
-    }
-    // all
+    // for ping
     egress {
         from_port = -1
         to_port = -1
@@ -64,38 +70,44 @@ resource "aws_security_group" "terraform_public_security_group" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 
-    vpc_id = "${aws_vpc.default.id}"
-
     tags {
-        Name = "terraform_public_security_group"
+        Name = "public"
     }
 }
 
 // Key Pair
-resource "aws_key_pair" "terraform_key_pair" {
-  key_name   = "terraform_key_pair"
+resource "aws_key_pair" "my_key" {
+  key_name   = "my_key"
   public_key = "${file("${var.public_key_path}")}"
 }
 
+// Get Ubuntu AMI id from Marketplace
+data "aws_ami" "ubuntu" {
+  filter {
+    name   = "name"
+    values = ["${var.ami_name}"]
+  }
+}
+
 // Instance
-resource "aws_instance" "terraform_instance" {
-    ami = "${var.ami}"  # Ubuntu 16.04 LTS https://cloud-images.ubuntu.com/locator/ec2/
+resource "aws_instance" "web" {
+    ami = "${data.aws_ami.ubuntu.id}"  # Ubuntu 16.04 LTS https://cloud-images.ubuntu.com/locator/ec2/
     availability_zone = "${var.availability_zone}"
     instance_type = "${var.instance_type}"
-    key_name = "${aws_key_pair.terraform_key_pair.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.terraform_public_security_group.id}"]
-    subnet_id = "${aws_subnet.terraform_public_subnet.id}"
+    key_name = "${aws_key_pair.my_key.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.public.id}"]
+    subnet_id = "${aws_subnet.public.id}"
     associate_public_ip_address = true
 
     connection {
         user                = "${var.ssh_username}"
         private_key         = "${file("${var.private_key_path}")}"
         agent               = false
-        host                = "${aws_instance.terraform_instance.public_ip}"
+        host                = "${aws_instance.web.public_ip}"
     }
 
     tags {
-         Name = "Istanbul Coders IaC Terraform"
+         Name = "${terraform.workspace}_instance"
     }
 
      provisioner "remote-exec" {
@@ -106,17 +118,6 @@ resource "aws_instance" "terraform_instance" {
 
 }
 
-// Public Subnet
-resource "aws_subnet" "terraform_public_subnet" {
-    vpc_id = "${aws_vpc.default.id}"
-
-    cidr_block = "${var.public_subnet_cidr_block}"
-    availability_zone = "${var.availability_zone}"
-
-    tags {
-        Name = "terraform_public_subnet"
-    }
-}
 
 // Internet Gateway
 
@@ -125,7 +126,7 @@ resource "aws_internet_gateway" "default" {
 }
 
 // Public Route Table
-resource "aws_route_table" "terraform_public_route_table" {
+resource "aws_route_table" "public" {
     vpc_id = "${aws_vpc.default.id}"
 
     route {
@@ -134,12 +135,12 @@ resource "aws_route_table" "terraform_public_route_table" {
     }
 
     tags {
-        Name = "terraform_public_route_table"
+        Name = "public"
     }
 }
 
 // Public Route Table Asscociation
-resource "aws_route_table_association" "terraform_public_route_table_asccociation" {
-    subnet_id = "${aws_subnet.terraform_public_subnet.id}"
-    route_table_id = "${aws_route_table.terraform_public_route_table.id}"
+resource "aws_route_table_association" "public" {
+    subnet_id = "${aws_subnet.public.id}"
+    route_table_id = "${aws_route_table.public.id}"
 }

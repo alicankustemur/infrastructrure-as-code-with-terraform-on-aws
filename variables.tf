@@ -21,9 +21,13 @@ variable "ssh_username" {
 variable "instance_type" {
   
 }
-variable "ami" {
+variable "ami_name" {
   
 }
+variable "region" {
+  
+}
+
 
 
 
