@@ -34,40 +34,40 @@ resource "aws_security_group" "public" {
         from_port = 80
         to_port = 80
         protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
     ingress {
         from_port = 22
         to_port = 22
         protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
     // for ping
     ingress {
         from_port = -1
         to_port = -1
         protocol = "icmp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
 
     egress {
         from_port = 80
         to_port = 80
         protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
     egress {
         from_port = 443
         to_port = 443
         protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
     // for ping
     egress {
         from_port = -1
         to_port = -1
         protocol = "icmp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
 
     tags {
@@ -99,6 +99,10 @@ resource "aws_instance" "web" {
     subnet_id = "${aws_subnet.public.id}"
     associate_public_ip_address = true
 
+    tags {
+         Name = "${terraform.workspace}_instance"
+    }
+
     connection {
         user                = "${var.ssh_username}"
         private_key         = "${file("${var.private_key_path}")}"
@@ -106,16 +110,12 @@ resource "aws_instance" "web" {
         host                = "${aws_instance.web.public_ip}"
     }
 
-    tags {
-         Name = "${terraform.workspace}_instance"
-    }
 
      provisioner "remote-exec" {
         inline = [
             "sudo apt-get update -y -qq && sudo apt-get install nginx -y -qq"
         ]
      }
-
 }
 
 
@@ -130,7 +130,7 @@ resource "aws_route_table" "public" {
     vpc_id = "${aws_vpc.default.id}"
 
     route {
-        cidr_block = "0.0.0.0/0"
+        cidr_block = "${var.everywhere_cidr_block}"
         gateway_id = "${aws_internet_gateway.default.id}"
     }
 

@@ -1,4 +1,5 @@
 vpc_cidr_block = "172.31.0.0/16"
+everywhere_cidr_block = "0.0.0.0/0"
 public_key_path = "~/.ssh/id_rsa.pub"
 private_key_path = "~/.ssh/id_rsa"
 ssh_username = "ubuntu"
