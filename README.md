@@ -1,5 +1,5 @@
 # iac_with_terraform_on_aws
-Meetup - Infrastructure as Code with Terraform on AWS
+Infrastructure as Code with Terraform on AWS
 
 This repository contains a [Terraform][] project that builds [Scenario 2: VPC
 with Public Subnet][scenario_two] from the [AWS documentation][].
