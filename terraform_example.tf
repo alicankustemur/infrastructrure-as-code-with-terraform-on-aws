@@ -3,7 +3,6 @@ provider "aws" {
 }
 
 // VPC
-
 resource "aws_vpc" "default" {
     cidr_block = "${var.vpc_cidr_block}"
     enable_dns_hostnames = true
@@ -25,7 +24,6 @@ resource "aws_subnet" "public" {
 }
 
 //  Security Group
-
 resource "aws_security_group" "public" {
     name = "public"
     description = "Allow traffic to pass from the public subnet to the internet"
@@ -36,17 +34,12 @@ resource "aws_security_group" "public" {
         protocol = "tcp"
         cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
+
+    # for SSH
     ingress {
         from_port = 22
         to_port = 22
         protocol = "tcp"
-        cidr_blocks = ["${var.everywhere_cidr_block}"]
-    }
-    // for ping
-    ingress {
-        from_port = -1
-        to_port = -1
-        protocol = "icmp"
         cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
 
@@ -60,13 +53,6 @@ resource "aws_security_group" "public" {
         from_port = 443
         to_port = 443
         protocol = "tcp"
-        cidr_blocks = ["${var.everywhere_cidr_block}"]
-    }
-    // for ping
-    egress {
-        from_port = -1
-        to_port = -1
-        protocol = "icmp"
         cidr_blocks = ["${var.everywhere_cidr_block}"]
     }
 
@@ -109,7 +95,6 @@ resource "aws_instance" "web" {
         agent               = false
         host                = "${aws_instance.web.public_ip}"
     }
-
 
      provisioner "remote-exec" {
         inline = [
