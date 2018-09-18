@@ -3,17 +3,14 @@ provider "aws" {
 }
 
 // VPC
-resource "aws_vpc" "default" {
-    cidr_block = "${var.vpc_cidr_block}"
-    enable_dns_hostnames = true
-    tags {
-        Name = "terraform_aws_vpc"
-    }
+
+data "aws_vpc" "default" {
+  default = true
 }
 
 // Public Subnet
 resource "aws_subnet" "public" {
-    vpc_id = "${aws_vpc.default.id}"
+    vpc_id = "${data.aws_vpc.default.id}"
 
     cidr_block = "${var.public_subnet_cidr_block}"
     availability_zone = "${var.availability_zone}"
@@ -23,11 +20,11 @@ resource "aws_subnet" "public" {
     }
 }
 
-//  Security Group
+# //  Security Group
 resource "aws_security_group" "public" {
     name = "public"
     description = "Allow traffic to pass from the public subnet to the internet"
-    vpc_id = "${aws_vpc.default.id}"
+    vpc_id = "${data.aws_vpc.default.id}"
     ingress {
         from_port = 80
         to_port = 80
@@ -101,31 +98,4 @@ resource "aws_instance" "web" {
             "sudo apt-get update -y -qq && sudo apt-get install nginx -y -qq"
         ]
      }
-}
-
-
-// Internet Gateway
-
-resource "aws_internet_gateway" "default" {
-    vpc_id = "${aws_vpc.default.id}"
-}
-
-// Public Route Table
-resource "aws_route_table" "public" {
-    vpc_id = "${aws_vpc.default.id}"
-
-    route {
-        cidr_block = "${var.everywhere_cidr_block}"
-        gateway_id = "${aws_internet_gateway.default.id}"
-    }
-
-    tags {
-        Name = "public"
-    }
-}
-
-// Public Route Table Asscociation
-resource "aws_route_table_association" "public" {
-    subnet_id = "${aws_subnet.public.id}"
-    route_table_id = "${aws_route_table.public.id}"
 }
